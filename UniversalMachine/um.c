@@ -23,13 +23,16 @@ void initialize() {
 
   collection.size = 16;
   collection.arrays = malloc(collection.size*sizeof(uint32_t*));
+  collection.lengths = malloc(collection.size*sizeof(uint32_t));
 
-  for(i=0; i<collection.size; i++)
+  for(i=0; i<collection.size; i++) {
     collection.arrays[i] = NULL;
+    collection.lengths[i] = 0;
+  }
 
   collection.free = 1;
 
-  for(i=0; i<8; i++)
+  for(i=0; i<NBREG; i++)
     registers[i] = 0;
 }
 
@@ -71,6 +74,7 @@ void destroy() {
       free(collection.arrays[collection.size-1]);
   }
   free(collection.arrays);
+  free(collection.lengths);
 
   exit(EXIT_SUCCESS);
 }
@@ -115,8 +119,27 @@ void next() {
   case 7:
     halt();
     break;
+  case 8:
+    alloc(b,c);
+    break;
+  case 9:
+    abandonment(c);
+    break;
+  case 10:
+    output(c);
+    break;
+  case 11:
+    input(c);
+    break;
+  case 12:
+    load_program(b,c);
+    break;
+  default:
+    error(NOTINS);
+    break;
   }
-   
+  
+  pc++;
 }
 
 void cond_move(int a, int b, int c) {
@@ -124,25 +147,30 @@ void cond_move(int a, int b, int c) {
     registers[a] = registers[b];
 }
 
-
 void array_index(int a, int b, int c) {
-  registers[a] = collection.arrays[b][registers[c]];
+  if(registers[c] < collection.lengths[registers[b]])
+    registers[a] = collection.arrays[registers[b]][registers[c]];
+  else
+    error(SEGFLT);
 }
 
 void array_amendment(int a, int b, int c) {
-  collection.arrays[registers[a]][registers[b]] = registers[c];
+  if(registers[b] < collection.lengths[registers[a]])
+    collection.arrays[registers[a]][registers[b]] = registers[c];
+  else
+    error(SEGFLT);
 }
 
 void add (int a, int b, int c) {
-  registers[a] = registers[b] + registers[c];
+  registers[a] = (uint32_t) (registers[b] + registers[c]);
 }
 
 void mult(int a, int b, int c) {
-  registers[a] = registers[b] * registers[c];
+  registers[a] = (uint32_t) (registers[b] * registers[c]);
 }
 
 void div(int a, int b, int c) {
-  registers[a] = registers[b] / registers[c];
+  registers[a] = (uint32_t) (registers[b] / registers[c]);
 }
 
 void nand(int a, int b, int c) {
@@ -154,8 +182,12 @@ void halt() {
 }
 
 void alloc(int b, int c) {
+  int i;
+  
   collection.arrays[collection.free] = malloc(registers[c]*sizeof(uint32_t));
-  memset(collection.arrays[collection.free], 0, registers[c]*sizeof(uint32_t));
+  memset(collection.arrays[collection.free], 0, 
+	 registers[c]*sizeof(uint32_t));
+  collection.lengths[collection.free] = registers[c];
   registers[b] = collection.free;
 
   for(;collection.free<collection.size; collection.free++) {
@@ -164,18 +196,25 @@ void alloc(int b, int c) {
   }
   if(collection.free == collection.size) {
     collection.arrays = realloc(collection.arrays, collection.size*2);
+    collection.lengths = realloc(collection.lengths, collection.size*2);
+    for(i=collection.size; i<collection.size*2; i++) {
+      collection.arrays[i] = NULL;
+      collection.lengths[i] = 0;
+    }
     collection.size *= 2;
   }
 }
 
 void abandonment(int c) {
-  free(collection.arrays[c]);
-  if(c < collection.free)
-    collection.free = c;
+  free(collection.arrays[registers[c]]);
+  collection.arrays[registers[c]] = NULL;
+  collection.lengths[registers[c]] = 0;
+  if(registers[c] < collection.free)
+    collection.free = registers[c];
 }
 
 void output(int c) {
-  printf("%c", (c & 255));
+  printf("%c", (registers[c] & 255));
 }
 
 void input(int c) {
@@ -184,5 +223,20 @@ void input(int c) {
 
 void load_program(int b, int c) {
   
+}
+
+void error(int errno) {
+  switch(errno) {
+  case SEGFLT:
+    printf("Segmentation fault\n");
+    break;
+  case NOTINS:
+    printf("Instruction unknown\n");
+    break;
+  default:
+    printf("Unknown error\n");
+    break;
+  }
+  destroy();
 }
 

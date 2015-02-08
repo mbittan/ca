@@ -1,19 +1,19 @@
 #ifndef UM_H_
 #define UM_H_
 
-uint32_t registers[8];
+#define NBREG 8
 
-typedef struct _coll_ {
+uint32_t registers[NBREG];
+
+struct coll {
   uint32_t** arrays;
+  uint32_t* lengths;
   uint32_t size;
   uint32_t free;
-} coll;
-
-coll collection;
+} collection;
 
 uint32_t pc;
 uint32_t program_size;
-
 
 void initialize();
 
@@ -29,13 +29,13 @@ void array_index(int a, int b, int c);
 
 void array_amendment(int a, int b, int c);
 
-void add (int a, int b, int c);
+void add(int a, int b, int c);
 
-void mult (int a, int b, int c);
+void mult(int a, int b, int c);
 
-void div (int a, int b, int c);
+void div(int a, int b, int c);
 
-void nand (int a, int b, int c);
+void nand(int a, int b, int c);
 
 void halt();
 
@@ -48,5 +48,10 @@ void output(int c);
 void input(int c);
 
 void load_program(int b, int c);
+
+void error(int errno);
+
+#define SEGFLT 1
+#define NOTINS 2
 
 #endif
