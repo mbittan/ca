@@ -41,4 +41,12 @@ void halt();
 
 void alloc(int b, int c);
 
+void abandonment(int c);
+
+void output(int c);
+
+void input(int c);
+
+void load_program(int b, int c);
+
 #endif

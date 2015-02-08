@@ -154,16 +154,35 @@ void halt() {
 }
 
 void alloc(int b, int c) {
-  collection.arrays[free] = malloc(registers[c]*sizeof(uint32_t));
-  memset(collection.arrays[free], 0, registers[c]*sizeof(uint32_t));
-  registers[b] = free;
+  collection.arrays[collection.free] = malloc(registers[c]*sizeof(uint32_t));
+  memset(collection.arrays[collection.free], 0, registers[c]*sizeof(uint32_t));
+  registers[b] = collection.free;
 
-  for(;free<collection.size; free++) {
-    if(collection.arrays[free] == NULL)
+  for(;collection.free<collection.size; collection.free++) {
+    if(collection.arrays[collection.free] == NULL)
       break;
   }
-  if(free == collection.size+1) {
+  if(collection.free == collection.size) {
     collection.arrays = realloc(collection.arrays, collection.size*2);
     collection.size *= 2;
   }
 }
+
+void abandonment(int c) {
+  free(collection.arrays[c]);
+  if(c < collection.free)
+    collection.free = c;
+}
+
+void output(int c) {
+  printf("%c", (c & 255));
+}
+
+void input(int c) {
+  registers[c] = (uint32_t) getchar();
+}
+
+void load_program(int b, int c) {
+  
+}
+
