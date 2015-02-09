@@ -7,14 +7,32 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "um.h"
 
 
 int main(int argc, char** argv) {
+  if(argc != 2) {
+    fprintf(stderr, "Usage: um file\n");
+    return EXIT_FAILURE;
+  }
   
+  initialize();
+  if(load_code(argv[1]) == -1) {
+    destroy();
+    return EXIT_FAILURE;
+  }
 
-  return 0;
+  printf("Instruction number : %d\n", collection.lengths[0]);
+
+  while(pc <= collection.lengths[0]) {
+    next();
+  }
+  
+  destroy();
+
+  return EXIT_SUCCESS;
 }
 
 
@@ -53,7 +71,7 @@ int load_code(char* path) {
   }
 
   collection.arrays[0] = malloc(st.st_size);
-  program_size = st.st_size/sizeof(uint32_t);
+  collection.lengths[0] = st.st_size/sizeof(uint32_t);
 
   if(read(fd, collection.arrays[0], st.st_size) != st.st_size) {
     perror("load_code : read");
@@ -75,8 +93,6 @@ void destroy() {
   }
   free(collection.arrays);
   free(collection.lengths);
-
-  exit(EXIT_SUCCESS);
 }
 
 void next() {
@@ -84,7 +100,7 @@ void next() {
   uint32_t opnb = instr >> 28;
   uint32_t a, b, c, value;
 
-  if(opnb == 13) {
+  if(opnb >= 13) {
     a = (instr >> 25) & 7;
     value = (instr << 7) >> 7;
   }
@@ -93,6 +109,9 @@ void next() {
     b = (instr >> 3) & 7;
     c = (instr >> 6) & 7;
   }
+
+  printf("%d\t:", pc);
+  print_instruction(instr);
 
   switch(opnb) {
   case 0:
@@ -111,7 +130,7 @@ void next() {
     mult(a,b,c);
     break;
   case 5:
-    div(a,b,c);
+    division(a,b,c);
     break;
   case 6:
     nand(a,b,c);
@@ -133,6 +152,9 @@ void next() {
     break;
   case 12:
     load_program(b,c);
+    break;
+  case 13:
+    orthography(a, value);
     break;
   default:
     error(NOTINS);
@@ -169,7 +191,7 @@ void mult(int a, int b, int c) {
   registers[a] = (uint32_t) (registers[b] * registers[c]);
 }
 
-void div(int a, int b, int c) {
+void division(int a, int b, int c) {
   registers[a] = (uint32_t) (registers[b] / registers[c]);
 }
 
@@ -179,6 +201,7 @@ void nand(int a, int b, int c) {
 
 void halt() {
   destroy();
+  exit(EXIT_SUCCESS);
 }
 
 void alloc(int b, int c) {
@@ -222,7 +245,19 @@ void input(int c) {
 }
 
 void load_program(int b, int c) {
-  
+  if(collection.lengths[registers[b]] > 0) {
+    free(collection.arrays[0]);
+    collection.arrays[0] = malloc(collection.lengths[registers[b]] *
+				  sizeof(uint32_t));
+    collection.lengths[0] = collection.lengths[registers[b]];
+    pc = registers[c]-1;
+  }
+  else
+    error(SEGFLT);
+}
+
+void orthography(int a, int value) {
+  registers[a] = value;
 }
 
 void error(int errno) {
@@ -238,5 +273,71 @@ void error(int errno) {
     break;
   }
   destroy();
+  exit(EXIT_FAILURE);
 }
 
+void print_instruction(uint32_t instr) {
+  uint32_t opnb = instr >> 28;
+  uint32_t a, b, c, value;
+  char instr_name[5];
+
+  switch(opnb) {
+  case 0:
+    sprintf(instr_name, "cdmv");
+    break;
+  case 1:
+    sprintf(instr_name, "arin");
+    break;
+  case 2:
+    sprintf(instr_name, "aram");
+    break;
+  case 3:
+    sprintf(instr_name, "add");
+    break;
+  case 4:
+    sprintf(instr_name, "mult");
+    break;
+  case 5:
+    sprintf(instr_name, "div");
+    break;
+  case 6:
+    sprintf(instr_name, "nand");
+    break;
+  case 7:
+    sprintf(instr_name, "halt");
+    break;
+  case 8:
+    sprintf(instr_name, "allo");
+    break;
+  case 9:
+    sprintf(instr_name, "aban");
+    break;
+  case 10:
+    sprintf(instr_name, "out");
+    break;
+  case 11:
+    sprintf(instr_name, "in");
+    break;
+  case 12:
+    sprintf(instr_name, "load");
+    break;
+  case 13:
+    sprintf(instr_name, "orth");
+    break;
+  default:
+    sprintf(instr_name, "NOIN");
+    break;
+  }
+
+  if(opnb >= 13) {
+    a = (instr >> 25) & 7;
+    value = (instr << 7) >> 7;
+    printf("%s r%d, %d\n", instr_name, a, value);
+  }
+  else {
+    a = instr & 7;
+    b = (instr >> 3) & 7;
+    c = (instr >> 6) & 7;
+    printf("%s r%d, r%d, r%d\n", instr_name, a, b, c);
+  }
+}

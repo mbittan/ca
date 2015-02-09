@@ -13,7 +13,6 @@ struct coll {
 } collection;
 
 uint32_t pc;
-uint32_t program_size;
 
 void initialize();
 
@@ -33,7 +32,7 @@ void add(int a, int b, int c);
 
 void mult(int a, int b, int c);
 
-void div(int a, int b, int c);
+void division(int a, int b, int c);
 
 void nand(int a, int b, int c);
 
@@ -49,7 +48,11 @@ void input(int c);
 
 void load_program(int b, int c);
 
+void orthography(int a, int value);
+
 void error(int errno);
+
+void print_instruction(uint32_t instr);
 
 #define SEGFLT 1
 #define NOTINS 2
