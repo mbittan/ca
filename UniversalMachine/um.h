@@ -54,6 +54,8 @@ void error(int errno);
 
 void print_instruction(uint32_t instr);
 
+void print_program();
+
 #define SEGFLT 1
 #define NOTINS 2
 

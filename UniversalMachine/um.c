@@ -245,10 +245,12 @@ void input(int c) {
 }
 
 void load_program(int b, int c) {
+  uint32_t *new_prog, *tmp;
   if(collection.lengths[registers[b]] > 0) {
+    new_prog = malloc(collection.lengths[registers[b]] * sizeof(uint32_t));
+    memcpy(new_prog, collection.arrays[registers[b]], collection.lengths[registers[b]]*sizeof(uint32_t));
     free(collection.arrays[0]);
-    collection.arrays[0] = malloc(collection.lengths[registers[b]] *
-				  sizeof(uint32_t));
+    collection.arrays[0] = new_prog;
     collection.lengths[0] = collection.lengths[registers[b]];
     pc = registers[c]-1;
   }
@@ -340,4 +342,11 @@ void print_instruction(uint32_t instr) {
     c = (instr >> 6) & 7;
     printf("%s r%d, r%d, r%d\n", instr_name, a, b, c);
   }
+}
+
+void print_program() {
+  int i;
+  
+  for(i=0; i<collection.lengths[0]; i++)
+    print_instruction(collection.arrays[0][i]);
 }
