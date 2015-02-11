@@ -30,6 +30,7 @@ int main(int argc, char** argv) {
     next();
   }
   
+  // print_program();
   destroy();
 
   return EXIT_SUCCESS;
@@ -55,7 +56,8 @@ void initialize() {
 }
 
 int load_code(char* path) {
-  int fd;
+  int fd, i;
+  uint32_t inst;
   struct stat st;
 
   pc = 0;
@@ -73,9 +75,20 @@ int load_code(char* path) {
   collection.arrays[0] = malloc(st.st_size);
   collection.lengths[0] = st.st_size/sizeof(uint32_t);
 
-  if(read(fd, collection.arrays[0], st.st_size) != st.st_size) {
-    perror("load_code : read");
-    return -1;
+  /* if(read(fd, collection.arrays[0], st.st_size) != st.st_size) { */
+  /*   perror("load_code : read"); */
+  /*   return -1; */
+  /* } */
+
+  for(i=0; i<collection.lengths[0]; i++) {
+    if(read(fd, &inst, sizeof(uint32_t)) != sizeof(uint32_t)) {
+      perror("load_code : read");
+      return -1;
+    }
+    collection.arrays[0][i] = inst << 24;
+    collection.arrays[0][i] &= ((inst <<  8) | 0xFF00FFFF);
+    collection.arrays[0][i] &= ((inst >>  8) | 0xFFFF00FF);
+    collection.arrays[0][i] &= ((inst >> 24) | 0xFFFFFF00); 
   }
 
   if(close(fd) == -1) {
@@ -110,8 +123,8 @@ void next() {
     c = (instr >> 6) & 7;
   }
 
-  printf("%d\t:", pc);
-  print_instruction(instr);
+  //printf("%d\t:", pc);
+  //print_instruction(instr);
 
   switch(opnb) {
   case 0:
@@ -282,6 +295,7 @@ void print_instruction(uint32_t instr) {
   uint32_t opnb = instr >> 28;
   uint32_t a, b, c, value;
   char instr_name[5];
+  int i;
 
   switch(opnb) {
   case 0:
@@ -294,13 +308,13 @@ void print_instruction(uint32_t instr) {
     sprintf(instr_name, "aram");
     break;
   case 3:
-    sprintf(instr_name, "add");
+    sprintf(instr_name, "add ");
     break;
   case 4:
     sprintf(instr_name, "mult");
     break;
   case 5:
-    sprintf(instr_name, "div");
+    sprintf(instr_name, "div ");
     break;
   case 6:
     sprintf(instr_name, "nand");
@@ -315,10 +329,10 @@ void print_instruction(uint32_t instr) {
     sprintf(instr_name, "aban");
     break;
   case 10:
-    sprintf(instr_name, "out");
+    sprintf(instr_name, "out ");
     break;
   case 11:
-    sprintf(instr_name, "in");
+    sprintf(instr_name, "in  ");
     break;
   case 12:
     sprintf(instr_name, "load");
@@ -334,19 +348,29 @@ void print_instruction(uint32_t instr) {
   if(opnb >= 13) {
     a = (instr >> 25) & 7;
     value = (instr << 7) >> 7;
-    printf("%s r%d, %d\n", instr_name, a, value);
+    printf("%s r%d, %6d\t", instr_name, a, value);
   }
   else {
     a = instr & 7;
     b = (instr >> 3) & 7;
     c = (instr >> 6) & 7;
-    printf("%s r%d, r%d, r%d\n", instr_name, a, b, c);
+    printf("%s r%d, r%d, r%d\t", instr_name, a, b, c);
   }
+
+  // print instruction byte by byte
+  for(i=31; i>=0; i--) {
+    printf("%d", (instr >> i) & 1);
+    if(i==28)
+      printf(" ");
+  }
+  printf("\n");
 }
 
 void print_program() {
   int i;
   
-  for(i=0; i<collection.lengths[0]; i++)
+  for(i=0; i<collection.lengths[0]; i++) {
+    printf("%d\t:", i);
     print_instruction(collection.arrays[0][i]);
+  }
 }
