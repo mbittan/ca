@@ -13,12 +13,6 @@ struct coll {
   uint32_t free;
 } collection;
 
-void (*ops[NBOPS])(int a, int b, int c) = {cond_move, array_index,
-					   array_amendment, add, mult,
-					   division, nand, halt, alloc,
-					   abandonment, output, input,
-					   load_program, orthography};
-
 uint32_t pc;
 
 void initialize();
@@ -43,19 +37,19 @@ void division(int a, int b, int c);
 
 void nand(int a, int b, int c);
 
-void halt(int a, int b, int c);
+void halt();
 
-void alloc(int a, int b, int c);
+void alloc(int b, int c);
 
-void abandonment(int a, int b, int c);
+void abandonment(int c);
 
-void output(int a, int b, int c);
+void output(int c);
 
-void input(int a, int b, int c);
+void input(int c);
 
-void load_program(int a, int b, int c);
+void load_program(int b, int c);
 
-void orthography(int a, int value, int c);
+void orthography(int a, int value);
 
 void error(int errno);
 

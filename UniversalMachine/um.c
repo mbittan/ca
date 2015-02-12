@@ -112,7 +112,7 @@ void next() {
   uint32_t opnb = instr >> 28;
   uint32_t a, b, c, value;
 
-  if(opnb >= 13) {
+  if(opnb == 13) {
     a = (instr >> 25) & 7;
     value = instr & 33554431;
   }
@@ -125,59 +125,53 @@ void next() {
   //printf("%d\t:", pc);
   //print_instruction(instr);
 
-  if(opnb > 13)
+  switch(opnb) {
+  case 0:
+    cond_move(a,b,c);
+    break;
+  case 1:
+    array_index(a,b,c);
+    break;
+  case 2:
+    array_amendment(a,b,c);
+    break;
+  case 3:
+    add(a,b,c);
+    break;
+  case 4:
+    mult(a,b,c);
+    break;
+  case 5:
+    division(a,b,c);
+    break;
+  case 6:
+    nand(a,b,c);
+    break;
+  case 7:
+    halt();
+    break;
+  case 8:
+    alloc(b,c);
+    break;
+  case 9:
+    abandonment(c);
+    break;
+  case 10:
+    output(c);
+    break;
+  case 11:
+    input(c);
+    break;
+  case 12:
+    load_program(b,c);
+    break;
+  case 13:
+    orthography(a,value);
+    break;
+  default:
     error(NOTINS);
-  if(opnb == 13)
-    b = value;
-  ops[opnb](a, b, c);
-
-  /* switch(opnb) { */
-  /* case 0: */
-  /*   cond_move(a,b,c); */
-  /*   break; */
-  /* case 1: */
-  /*   array_index(a,b,c); */
-  /*   break; */
-  /* case 2: */
-  /*   array_amendment(a,b,c); */
-  /*   break; */
-  /* case 3: */
-  /*   add(a,b,c); */
-  /*   break; */
-  /* case 4: */
-  /*   mult(a,b,c); */
-  /*   break; */
-  /* case 5: */
-  /*   division(a,b,c); */
-  /*   break; */
-  /* case 6: */
-  /*   nand(a,b,c); */
-  /*   break; */
-  /* case 7: */
-  /*   halt(); */
-  /*   break; */
-  /* case 8: */
-  /*   alloc(b,c); */
-  /*   break; */
-  /* case 9: */
-  /*   abandonment(c); */
-  /*   break; */
-  /* case 10: */
-  /*   output(c); */
-  /*   break; */
-  /* case 11: */
-  /*   input(c); */
-  /*   break; */
-  /* case 12: */
-  /*   load_program(b,c); */
-  /*   break; */
-  /* case 13: */
-  /*   orthography(a, value); */
-  /*   break; */
-  /* default: */
-  /*   error(NOTINS); */
-  /*   break; */
-  /* } */
+    break;
+  }
   
   pc++;
 }
@@ -218,12 +212,12 @@ void nand(int a, int b, int c) {
   registers[a] = ~(registers[b] & registers[c]);
 }
 
-void halt(int a, int b, int c) {
+void halt() {
   destroy();
   exit(EXIT_SUCCESS);
 }
 
-void alloc(int a, int b, int c) {
+void alloc(int b, int c) {
   int i;
   uint32_t **arrays, *lengths;
   
@@ -248,8 +242,6 @@ void alloc(int a, int b, int c) {
       arrays[i]=NULL;
       lengths[i]=0;
     }
-    // collection.arrays = realloc(collection.arrays, collection.size*2);
-    // collection.lengths = realloc(collection.lengths, collection.size*2);
     free(collection.arrays);
     free(collection.lengths);
     collection.arrays = arrays;
@@ -258,7 +250,7 @@ void alloc(int a, int b, int c) {
   }
 }
 
-void abandonment(int a, int b, int c) {
+void abandonment(int c) {
   free(collection.arrays[registers[c]]);
   collection.arrays[registers[c]] = NULL;
   collection.lengths[registers[c]] = 0;
@@ -266,32 +258,32 @@ void abandonment(int a, int b, int c) {
     collection.free = registers[c];
 }
 
-void output(int a, int b, int c) {
+void output(int c) {
   printf("%c", (registers[c] & 255));
 }
 
-void input(int a, int b, int c) {
+void input(int c) {
   registers[c] = (uint32_t) getchar();
 }
 
-void load_program(int a, int b, int c) {
+void load_program(int b, int c) {
   uint32_t *new_prog;
   if(collection.lengths[registers[b]] > 0) {
-    if(registers[b]!=0)
-      {
-	new_prog = malloc(collection.lengths[registers[b]] * sizeof(uint32_t));
-	memcpy(new_prog, collection.arrays[registers[b]], collection.lengths[registers[b]]*sizeof(uint32_t));
-	free(collection.arrays[0]);
-	collection.arrays[0] = new_prog;
-	collection.lengths[0] = collection.lengths[registers[b]];
-      }
+    if(registers[b]!=0) {
+      new_prog = malloc(collection.lengths[registers[b]] * sizeof(uint32_t));
+      memcpy(new_prog, collection.arrays[registers[b]],
+	     collection.lengths[registers[b]]*sizeof(uint32_t));
+      free(collection.arrays[0]);
+      collection.arrays[0] = new_prog;
+      collection.lengths[0] = collection.lengths[registers[b]];
+    }
     pc = registers[c]-1;
   }
   else
     error(SEGFLT);
 }
 
-void orthography(int a, int value, int c) {
+void orthography(int a, int value) {
   registers[a] = value;
 }
 
