@@ -29,8 +29,18 @@ int main(int argc, char** argv) {
   while(pc <= collection.lengths[0]) {
     next();
   }
+
+  /* uint32_t inst = 0xFFFFFFFF, res; */
+
+  /* res = 0x00FFFFFF; */
+  /* res |= (inst << 24); */
+  /* res &= ((inst <<  8) | 0xFF00FFFF); */
+  /* res &= ((inst >>  8) | 0xFFFF00FF); */
+  /* res &= ((inst >> 24) | 0xFFFFFF00); */
+  /* printf("%p\n%p\n", inst, res); */
+
   
-  // print_program();
+  //print_program();
   destroy();
 
   return EXIT_SUCCESS;
@@ -75,20 +85,16 @@ int load_code(char* path) {
   collection.arrays[0] = malloc(st.st_size);
   collection.lengths[0] = st.st_size/sizeof(uint32_t);
 
-  /* if(read(fd, collection.arrays[0], st.st_size) != st.st_size) { */
-  /*   perror("load_code : read"); */
-  /*   return -1; */
-  /* } */
-
   for(i=0; i<collection.lengths[0]; i++) {
     if(read(fd, &inst, sizeof(uint32_t)) != sizeof(uint32_t)) {
       perror("load_code : read");
       return -1;
     }
-    collection.arrays[0][i] = inst << 24;
+    collection.arrays[0][i] = 0x00FFFFFF;
+    collection.arrays[0][i] |= (inst << 24);
     collection.arrays[0][i] &= ((inst <<  8) | 0xFF00FFFF);
     collection.arrays[0][i] &= ((inst >>  8) | 0xFFFF00FF);
-    collection.arrays[0][i] &= ((inst >> 24) | 0xFFFFFF00); 
+    collection.arrays[0][i] &= ((inst >> 24) | 0xFFFFFF00);
   }
 
   if(close(fd) == -1) {
@@ -115,16 +121,16 @@ void next() {
 
   if(opnb >= 13) {
     a = (instr >> 25) & 7;
-    value = (instr << 7) >> 7;
+    value = instr & 0x01FFFFFF;
   }
   else {
-    a = instr & 7;
+    c = instr & 7;
     b = (instr >> 3) & 7;
-    c = (instr >> 6) & 7;
+    a = (instr >> 6) & 7;
   }
 
-  //printf("%d\t:", pc);
-  //print_instruction(instr);
+  printf("%d\t:", pc);
+  print_instruction(instr);
 
   switch(opnb) {
   case 0:
@@ -347,13 +353,13 @@ void print_instruction(uint32_t instr) {
 
   if(opnb >= 13) {
     a = (instr >> 25) & 7;
-    value = (instr << 7) >> 7;
+    value = instr & 0x1FFFFFFF;
     printf("%s r%d, %6d\t", instr_name, a, value);
   }
   else {
-    a = instr & 7;
+    c = instr & 7;
     b = (instr >> 3) & 7;
-    c = (instr >> 6) & 7;
+    a = (instr >> 6) & 7;
     printf("%s r%d, r%d, r%d\t", instr_name, a, b, c);
   }
 
