@@ -1,7 +1,7 @@
 all: um
 
 um: um.c um.h
-	gcc -o $@ $<
+	gcc -g -Wall -o $@ $<
 
 clean:
 	rm -rf um *~
