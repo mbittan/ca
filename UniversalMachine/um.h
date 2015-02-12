@@ -2,6 +2,7 @@
 #define UM_H_
 
 #define NBREG 8
+#define NBOPS 14
 
 uint32_t registers[NBREG];
 
@@ -11,6 +12,8 @@ struct coll {
   uint32_t size;
   uint32_t free;
 } collection;
+
+void (*ops[NBOPS])(int a, int b, int c);
 
 uint32_t pc;
 
@@ -36,19 +39,19 @@ void division(int a, int b, int c);
 
 void nand(int a, int b, int c);
 
-void halt();
+void halt(int a, int b, int c);
 
-void alloc(int b, int c);
+void alloc(int a, int b, int c);
 
-void abandonment(int c);
+void abandonment(int a, int b, int c);
 
-void output(int c);
+void output(int a, int b, int c);
 
-void input(int c);
+void input(int a, int b, int c);
 
-void load_program(int b, int c);
+void load_program(int a, int b, int c);
 
-void orthography(int a, int value);
+void orthography(int a, int value, int c);
 
 void error(int errno);
 

@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
 
   printf("Instruction number : %d\n", collection.lengths[0]);
 
-  while(pc <= collection.lengths[0]) {
+  while(pc < collection.lengths[0]) {
     next();
   }
 
@@ -63,6 +63,21 @@ void initialize() {
 
   for(i=0; i<NBREG; i++)
     registers[i] = 0;
+
+  ops[0] = cond_move;
+  ops[1] = array_index;
+  ops[2] = array_amendment;
+  ops[3] = add;
+  ops[4] = mult;
+  ops[5] = division;
+  ops[6] = nand;
+  ops[7] = halt;
+  ops[8] = alloc;
+  ops[9] = abandonment;
+  ops[10] = output;
+  ops[11] = input;
+  ops[12] = load_program;
+  ops[13] = orthography;
 }
 
 int load_code(char* path) {
@@ -106,9 +121,12 @@ int load_code(char* path) {
 }
 
 void destroy() {
+  return;
   for(;collection.size>0; collection.size--) {
-    if(collection.arrays[collection.size-1] != NULL)
+    if(collection.arrays[collection.size-1] != NULL) {
+      printf("freeing %d\n", collection.size-1);
       free(collection.arrays[collection.size-1]);
+    }
   }
   free(collection.arrays);
   free(collection.lengths);
@@ -121,7 +139,7 @@ void next() {
 
   if(opnb >= 13) {
     a = (instr >> 25) & 7;
-    value = instr & 0x01FFFFFF;
+    value = instr & 33554431;
   }
   else {
     c = instr & 7;
@@ -129,56 +147,62 @@ void next() {
     a = (instr >> 6) & 7;
   }
 
-  printf("%d\t:", pc);
-  print_instruction(instr);
+  //printf("%d\t:", pc);
+  //print_instruction(instr);
 
-  switch(opnb) {
-  case 0:
-    cond_move(a,b,c);
-    break;
-  case 1:
-    array_index(a,b,c);
-    break;
-  case 2:
-    array_amendment(a,b,c);
-    break;
-  case 3:
-    add(a,b,c);
-    break;
-  case 4:
-    mult(a,b,c);
-    break;
-  case 5:
-    division(a,b,c);
-    break;
-  case 6:
-    nand(a,b,c);
-    break;
-  case 7:
-    halt();
-    break;
-  case 8:
-    alloc(b,c);
-    break;
-  case 9:
-    abandonment(c);
-    break;
-  case 10:
-    output(c);
-    break;
-  case 11:
-    input(c);
-    break;
-  case 12:
-    load_program(b,c);
-    break;
-  case 13:
-    orthography(a, value);
-    break;
-  default:
+  if(opnb > 13)
     error(NOTINS);
-    break;
-  }
+  if(opnb == 13)
+    b = value;
+  ops[opnb](a, b, c);
+
+  /* switch(opnb) { */
+  /* case 0: */
+  /*   cond_move(a,b,c); */
+  /*   break; */
+  /* case 1: */
+  /*   array_index(a,b,c); */
+  /*   break; */
+  /* case 2: */
+  /*   array_amendment(a,b,c); */
+  /*   break; */
+  /* case 3: */
+  /*   add(a,b,c); */
+  /*   break; */
+  /* case 4: */
+  /*   mult(a,b,c); */
+  /*   break; */
+  /* case 5: */
+  /*   division(a,b,c); */
+  /*   break; */
+  /* case 6: */
+  /*   nand(a,b,c); */
+  /*   break; */
+  /* case 7: */
+  /*   halt(); */
+  /*   break; */
+  /* case 8: */
+  /*   alloc(b,c); */
+  /*   break; */
+  /* case 9: */
+  /*   abandonment(c); */
+  /*   break; */
+  /* case 10: */
+  /*   output(c); */
+  /*   break; */
+  /* case 11: */
+  /*   input(c); */
+  /*   break; */
+  /* case 12: */
+  /*   load_program(b,c); */
+  /*   break; */
+  /* case 13: */
+  /*   orthography(a, value); */
+  /*   break; */
+  /* default: */
+  /*   error(NOTINS); */
+  /*   break; */
+  /* } */
   
   pc++;
 }
@@ -196,7 +220,8 @@ void array_index(int a, int b, int c) {
 }
 
 void array_amendment(int a, int b, int c) {
-  if(registers[b] < collection.lengths[registers[a]])
+  if(registers[a] < collection.size &&
+     registers[b] < collection.lengths[registers[a]])
     collection.arrays[registers[a]][registers[b]] = registers[c];
   else
     error(SEGFLT);
@@ -218,16 +243,17 @@ void nand(int a, int b, int c) {
   registers[a] = ~(registers[b] & registers[c]);
 }
 
-void halt() {
+void halt(int a, int b, int c) {
   destroy();
   exit(EXIT_SUCCESS);
 }
 
-void alloc(int b, int c) {
+void alloc(int a, int b, int c) {
   int i;
+  uint32_t **arrays, *lengths;
   
   collection.arrays[collection.free] = malloc(registers[c]*sizeof(uint32_t));
-  memset(collection.arrays[collection.free], 0, 
+  memset(collection.arrays[collection.free], 0,
 	 registers[c]*sizeof(uint32_t));
   collection.lengths[collection.free] = registers[c];
   registers[b] = collection.free;
@@ -237,17 +263,27 @@ void alloc(int b, int c) {
       break;
   }
   if(collection.free == collection.size) {
-    collection.arrays = realloc(collection.arrays, collection.size*2);
-    collection.lengths = realloc(collection.lengths, collection.size*2);
-    for(i=collection.size; i<collection.size*2; i++) {
-      collection.arrays[i] = NULL;
-      collection.lengths[i] = 0;
+    arrays = malloc(collection.size*2*sizeof(uint32_t*));
+    lengths = malloc(collection.size*2*sizeof(uint32_t));
+    for(i=0; i<collection.size; i++) {
+      arrays[i]=collection.arrays[i];
+      lengths[i]=collection.lengths[i];
+    }   
+    for(i=i; i<collection.size; i++) {
+      arrays[i]=NULL;
+      lengths[i]=0;
     }
+    // collection.arrays = realloc(collection.arrays, collection.size*2);
+    // collection.lengths = realloc(collection.lengths, collection.size*2);
+    free(collection.arrays);
+    free(collection.lengths);
+    collection.arrays = arrays;
+    collection.lengths = lengths;
     collection.size *= 2;
   }
 }
 
-void abandonment(int c) {
+void abandonment(int a, int b, int c) {
   free(collection.arrays[registers[c]]);
   collection.arrays[registers[c]] = NULL;
   collection.lengths[registers[c]] = 0;
@@ -255,29 +291,32 @@ void abandonment(int c) {
     collection.free = registers[c];
 }
 
-void output(int c) {
+void output(int a, int b, int c) {
   printf("%c", (registers[c] & 255));
 }
 
-void input(int c) {
+void input(int a, int b, int c) {
   registers[c] = (uint32_t) getchar();
 }
 
-void load_program(int b, int c) {
-  uint32_t *new_prog, *tmp;
+void load_program(int a, int b, int c) {
+  uint32_t *new_prog;
   if(collection.lengths[registers[b]] > 0) {
-    new_prog = malloc(collection.lengths[registers[b]] * sizeof(uint32_t));
-    memcpy(new_prog, collection.arrays[registers[b]], collection.lengths[registers[b]]*sizeof(uint32_t));
-    free(collection.arrays[0]);
-    collection.arrays[0] = new_prog;
-    collection.lengths[0] = collection.lengths[registers[b]];
+    if(registers[b]!=0)
+      {
+	new_prog = malloc(collection.lengths[registers[b]] * sizeof(uint32_t));
+	memcpy(new_prog, collection.arrays[registers[b]], collection.lengths[registers[b]]*sizeof(uint32_t));
+	free(collection.arrays[0]);
+	collection.arrays[0] = new_prog;
+	collection.lengths[0] = collection.lengths[registers[b]];
+      }
     pc = registers[c]-1;
   }
   else
     error(SEGFLT);
 }
 
-void orthography(int a, int value) {
+void orthography(int a, int value, int c) {
   registers[a] = value;
 }
 
@@ -353,7 +392,7 @@ void print_instruction(uint32_t instr) {
 
   if(opnb >= 13) {
     a = (instr >> 25) & 7;
-    value = instr & 0x1FFFFFFF;
+    value = instr & 33554431;
     printf("%s r%d, %6d\t", instr_name, a, value);
   }
   else {
