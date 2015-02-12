@@ -13,7 +13,11 @@ struct coll {
   uint32_t free;
 } collection;
 
-void (*ops[NBOPS])(int a, int b, int c);
+void (*ops[NBOPS])(int a, int b, int c) = {cond_move, array_index,
+					   array_amendment, add, mult,
+					   division, nand, halt, alloc,
+					   abandonment, output, input,
+					   load_program, orthography};
 
 uint32_t pc;
 

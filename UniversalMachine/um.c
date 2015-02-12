@@ -30,16 +30,6 @@ int main(int argc, char** argv) {
     next();
   }
 
-  /* uint32_t inst = 0xFFFFFFFF, res; */
-
-  /* res = 0x00FFFFFF; */
-  /* res |= (inst << 24); */
-  /* res &= ((inst <<  8) | 0xFF00FFFF); */
-  /* res &= ((inst >>  8) | 0xFFFF00FF); */
-  /* res &= ((inst >> 24) | 0xFFFFFF00); */
-  /* printf("%p\n%p\n", inst, res); */
-
-  
   //print_program();
   destroy();
 
@@ -63,21 +53,6 @@ void initialize() {
 
   for(i=0; i<NBREG; i++)
     registers[i] = 0;
-
-  ops[0] = cond_move;
-  ops[1] = array_index;
-  ops[2] = array_amendment;
-  ops[3] = add;
-  ops[4] = mult;
-  ops[5] = division;
-  ops[6] = nand;
-  ops[7] = halt;
-  ops[8] = alloc;
-  ops[9] = abandonment;
-  ops[10] = output;
-  ops[11] = input;
-  ops[12] = load_program;
-  ops[13] = orthography;
 }
 
 int load_code(char* path) {
