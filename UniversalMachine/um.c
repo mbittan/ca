@@ -110,7 +110,7 @@ void destroy() {
 void next() {
   uint32_t instr = collection.arrays[0][pc];
   uint32_t opnb = instr >> 28;
-  uint32_t a, b, c, value;
+  uint32_t a=0, b=0, c=0, value=0;
 
   if(opnb == 13) {
     a = (instr >> 25) & 7;
