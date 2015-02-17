@@ -47,5 +47,16 @@ const MLvalue MLlrp   = {MLUNIT, {0}};
 // nil
 const MLvalue MLnil   = {MLLIST, {NULL}};
 // integer arithmetics
+MLvalue MLaddint(MLvalue x, MLvalue y);
+MLvalue MLsubint(MLvalue x, MLvalue y);
+MLvalue MLmulint(MLvalue x, MLvalue y);
+MLvalue MLdivint(MLvalue x, MLvalue y);
+// equals
+MLvalue MLequal(MLvalue x, MLvalue y);
+// integer comparisons
+MLvalue MLltint(MLvalue x, MLvalue y);
+MLvalue MLleint(MLvalue x, MLvalue y);
+MLvalue MLgtint(MLvalue x, MLvalue y);
+MLvalue MLgeint(MLvalue x, MLvalue y);
 
 #endif
