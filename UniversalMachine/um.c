@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
 }
 
 
-void initialize() {
+inline void initialize() {
   int i;
 
   collection.size = 16;
@@ -95,7 +95,7 @@ int load_code(char* path) {
   return 0;
 }
 
-void destroy() {
+inline void destroy() {
   return;
   for(;collection.size>0; collection.size--) {
     if(collection.arrays[collection.size-1] != NULL) {
@@ -107,7 +107,7 @@ void destroy() {
   free(collection.lengths);
 }
 
-void next() {
+inline void next() {
   uint32_t instr = collection.arrays[0][pc];
   uint32_t opnb = instr >> 28;
   uint32_t a=0, b=0, c=0, value=0;
@@ -176,19 +176,19 @@ void next() {
   pc++;
 }
 
-void cond_move(int a, int b, int c) {
+inline void cond_move(int a, int b, int c) {
   if(registers[c] != 0)
     registers[a] = registers[b];
 }
 
-void array_index(int a, int b, int c) {
+inline void array_index(int a, int b, int c) {
   if(registers[c] < collection.lengths[registers[b]])
     registers[a] = collection.arrays[registers[b]][registers[c]];
   else
     error(SEGFLT);
 }
 
-void array_amendment(int a, int b, int c) {
+inline void array_amendment(int a, int b, int c) {
   if(registers[a] < collection.size &&
      registers[b] < collection.lengths[registers[a]])
     collection.arrays[registers[a]][registers[b]] = registers[c];
@@ -196,28 +196,28 @@ void array_amendment(int a, int b, int c) {
     error(SEGFLT);
 }
 
-void add (int a, int b, int c) {
+inline void add (int a, int b, int c) {
   registers[a] = (uint32_t) (registers[b] + registers[c]);
 }
 
-void mult(int a, int b, int c) {
+inline void mult(int a, int b, int c) {
   registers[a] = (uint32_t) (registers[b] * registers[c]);
 }
 
-void division(int a, int b, int c) {
+inline void division(int a, int b, int c) {
   registers[a] = (uint32_t) (registers[b] / registers[c]);
 }
 
-void nand(int a, int b, int c) {
+inline void nand(int a, int b, int c) {
   registers[a] = ~(registers[b] & registers[c]);
 }
 
-void halt() {
+inline void halt() {
   destroy();
   exit(EXIT_SUCCESS);
 }
 
-void alloc(int b, int c) {
+inline void alloc(int b, int c) {
   int i;
   uint32_t **arrays, *lengths;
   
@@ -250,7 +250,7 @@ void alloc(int b, int c) {
   }
 }
 
-void abandonment(int c) {
+inline void abandonment(int c) {
   free(collection.arrays[registers[c]]);
   collection.arrays[registers[c]] = NULL;
   collection.lengths[registers[c]] = 0;
@@ -258,15 +258,15 @@ void abandonment(int c) {
     collection.free = registers[c];
 }
 
-void output(int c) {
+inline void output(int c) {
   printf("%c", (registers[c] & 255));
 }
 
-void input(int c) {
+inline void input(int c) {
   registers[c] = (uint32_t) getchar();
 }
 
-void load_program(int b, int c) {
+inline void load_program(int b, int c) {
   uint32_t *new_prog;
   if(collection.lengths[registers[b]] > 0) {
     if(registers[b]!=0) {
@@ -283,11 +283,11 @@ void load_program(int b, int c) {
     error(SEGFLT);
 }
 
-void orthography(int a, int value) {
+inline void orthography(int a, int value) {
   registers[a] = value;
 }
 
-void error(int errno) {
+inline void error(int errno) {
   switch(errno) {
   case SEGFLT:
     printf("Segmentation fault\n");
@@ -303,7 +303,7 @@ void error(int errno) {
   exit(EXIT_FAILURE);
 }
 
-void print_instruction(uint32_t instr) {
+inline void print_instruction(uint32_t instr) {
   uint32_t opnb = instr >> 28;
   uint32_t a, b, c, value;
   char instr_name[5];
@@ -378,7 +378,7 @@ void print_instruction(uint32_t instr) {
   printf("\n");
 }
 
-void print_program() {
+inline void print_program() {
   int i;
   
   for(i=0; i<collection.lengths[0]; i++) {
