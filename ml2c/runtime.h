@@ -58,5 +58,19 @@ MLvalue MLltint(MLvalue x, MLvalue y);
 MLvalue MLleint(MLvalue x, MLvalue y);
 MLvalue MLgtint(MLvalue x, MLvalue y);
 MLvalue MLgeint(MLvalue x, MLvalue y);
+// pair
+MLvalue MLpair(MLvalue *x, MLvalue *y);
+// list
+MLvalue MLlist(MLvalue *x, MLvalue *y);
+// string
+MLvalue MLconcat(MLvalue x, MLvalue y);
+// pair accessors
+MLvalue MLfst_real(MLvalue p);
+MLvalue MLsnd_real(MLvalue p);
+// list accessors
+MLvalue MLhd_real(MLvalue l);
+MLvalue MLtl_real(MLvalue l);
+// print
+MLvalue MLprint(MLvalue x);
 
 #endif
