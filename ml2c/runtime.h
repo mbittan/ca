@@ -39,6 +39,14 @@ typedef struct _mlvalue_ {
 /******* Runtime *******/
 /***********************/
 
+// Constructors
+MLvalue new_MLint(int x);
+MLvalue new_MLdouble(double x);
+MLvalue new_MLbool(int b);
+MLvalue new_MLstring(char * s);
+MLvalue MLpair(MLvalue *x, MLvalue *y);
+MLvalue MLlist(MLvalue *x, MLvalue *y);
+
 // Booleens
 const MLvalue MLtrue  = {MLBOOL, {1}};
 const MLvalue MLfalse = {MLBOOL, {0}};
@@ -58,10 +66,6 @@ MLvalue MLltint(MLvalue x, MLvalue y);
 MLvalue MLleint(MLvalue x, MLvalue y);
 MLvalue MLgtint(MLvalue x, MLvalue y);
 MLvalue MLgeint(MLvalue x, MLvalue y);
-// pair
-MLvalue MLpair(MLvalue *x, MLvalue *y);
-// list
-MLvalue MLlist(MLvalue *x, MLvalue *y);
 // string
 MLvalue MLconcat(MLvalue x, MLvalue y);
 // pair accessors
