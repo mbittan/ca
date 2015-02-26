@@ -23,7 +23,7 @@ typedef struct _mlvalue_ {
     } MLpair;
     struct _mllist_ {
       struct _mlvalue_ *MLcar;
-      struct _mllist_  *MLcdr;
+      struct _mlvalue_ *MLcdr;
     } *MLlist;
     struct _mlfun_ {
       int counter;
@@ -40,12 +40,12 @@ typedef struct _mlvalue_ {
 /***********************/
 
 // Constructors
-MLvalue new_MLint(int x);
-MLvalue new_MLdouble(double x);
-MLvalue new_MLbool(int b);
-MLvalue new_MLstring(char * s);
-MLvalue MLpair(MLvalue *x, MLvalue *y);
-MLvalue MLlist(MLvalue *x, MLvalue *y);
+MLvalue * new_MLint(int x);
+MLvalue * new_MLdouble(double x);
+MLvalue * new_MLbool(int b);
+MLvalue * new_MLstring(char * s);
+MLvalue * MLpair(MLvalue *x, MLvalue *y);
+MLvalue * MLlist(MLvalue *x, MLvalue *y);
 
 // Booleens
 const MLvalue MLtrue  = {MLBOOL, {1}};
@@ -55,26 +55,26 @@ const MLvalue MLlrp   = {MLUNIT, {0}};
 // nil
 const MLvalue MLnil   = {MLLIST, {NULL}};
 // integer arithmetics
-MLvalue MLaddint(MLvalue x, MLvalue y);
-MLvalue MLsubint(MLvalue x, MLvalue y);
-MLvalue MLmulint(MLvalue x, MLvalue y);
-MLvalue MLdivint(MLvalue x, MLvalue y);
+MLvalue * MLaddint(MLvalue * x, MLvalue * y);
+MLvalue * MLsubint(MLvalue * x, MLvalue * y);
+MLvalue * MLmulint(MLvalue * x, MLvalue * y);
+MLvalue * MLdivint(MLvalue * x, MLvalue * y);
 // equals
-MLvalue MLequal(MLvalue x, MLvalue y);
+MLvalue * MLequal(MLvalue * x, MLvalue * y);
 // integer comparisons
-MLvalue MLltint(MLvalue x, MLvalue y);
-MLvalue MLleint(MLvalue x, MLvalue y);
-MLvalue MLgtint(MLvalue x, MLvalue y);
-MLvalue MLgeint(MLvalue x, MLvalue y);
+MLvalue * MLltint(MLvalue * x, MLvalue * y);
+MLvalue * MLleint(MLvalue * x, MLvalue * y);
+MLvalue * MLgtint(MLvalue * x, MLvalue * y);
+MLvalue * MLgeint(MLvalue * x, MLvalue * y);
 // string
-MLvalue MLconcat(MLvalue x, MLvalue y);
+MLvalue * MLconcat(MLvalue * x, MLvalue *  y);
 // pair accessors
-MLvalue MLfst_real(MLvalue p);
-MLvalue MLsnd_real(MLvalue p);
+MLvalue * MLfst_real(MLvalue * p);
+MLvalue * MLsnd_real(MLvalue * p);
 // list accessors
-MLvalue MLhd_real(MLvalue l);
-MLvalue MLtl_real(MLvalue l);
+MLvalue * MLhd_real(MLvalue * l);
+MLvalue * MLtl_real(MLvalue * l);
 // print
-MLvalue MLprint(MLvalue x);
+MLvalue * MLprint(MLvalue * x);
 
 #endif
