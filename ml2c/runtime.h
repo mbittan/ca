@@ -53,7 +53,7 @@ const MLvalue MLfalse = {MLBOOL, {0}};
 // Unit
 const MLvalue MLlrp   = {MLUNIT, {0}};
 // nil
-const MLvalue MLnil   = {MLLIST, {NULL}};
+const MLvalue MLnil = {MLLIST, {NULL}};
 // integer arithmetics
 MLvalue * MLaddint(MLvalue * x, MLvalue * y);
 MLvalue * MLsubint(MLvalue * x, MLvalue * y);
