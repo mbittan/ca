@@ -27,8 +27,8 @@ open Langinter;;
 
 (* des symboles globaux bien utiles par la suite *)
 
-let compiler_name = ref "ml2java";;
-let object_suffix = ref ".java";;
+let compiler_name = ref "ml2v";;
+let object_suffix = ref ".c";;
 
 (* des valeurs pour certains symboles de env_trans *)
 
@@ -55,35 +55,35 @@ let get_param_type fun_t =  match fun_t with
 
 initial_special_env := 
  List.map build [
-      "hd","MLruntime.MLhd";
-      "tl","MLruntime.MLtl";
-      "fst","MLruntime.MLfst";
-      "snd","MLruntime.MLsnd"
+      "hd","MLhd_real";
+      "tl","MLtl_real";
+      "fst","MLfst_real";
+      "snd","MLsnd_real"
 ];;
 
 
 initial_trans_env:= 
 
 let alpha = max_unknown () in
-[",",("MLruntime.MLpair", Fun_type (Pair_type (alpha,alpha),
+[",",("MLpair", Fun_type (Pair_type (alpha,alpha),
                                     Pair_type (alpha,alpha)))]@
-["::",("MLruntime.MLlist", Fun_type (Pair_type (alpha,alpha),
+["::",("MLlist", Fun_type (Pair_type (alpha,alpha),
                                     List_type (alpha)))]@
 
 (
 List.map build 
-     ["true" ,"MLruntime.MLtrue";
-      "false","MLruntime.MLfalse";
-      "+","MLruntime.MLaddint";
-      "-","MLruntime.MLsubint";
-      "*","MLruntime.MLmulint";
-      "/","MLruntime.MLdivint";
-      "=","MLruntime.MLequal";
-      "<","MLruntime.MLltint";
-      "<=","MLruntime.MLleint";
-      ">","MLruntime.MLgtint";
-      ">=","MLruntime.MLgeint";
-      "^", "MLruntime.MLconcat"
+     ["true" ,"MLtrue";
+      "false","MLfalse";
+      "+","MLaddint";
+      "-","MLsubint";
+      "*","MLmulint";
+      "/","MLdivint";
+      "=","MLequal";
+      "<","MLltint";
+      "<=","MLleint";
+      ">","MLgtint";
+      ">=","MLgeint";
+      "^", "MLconcat"
       
 ]
 )
@@ -119,13 +119,13 @@ let out_after  (fr,sd,nb) =
 let header_main  s = 
   List.iter out 
    ["/**\n";
-    " *  "^ s ^ ".java" ^ " engendre par ml2java \n";
+    " *  "^ s ^ ".c" ^ " engendre par ml2c \n";
     " */\n"]
 ;;
 
 let footer_main  s = 
   List.iter out
-   ["// fin du fichier " ^ s ^ ".java\n"]
+   ["// fin du fichier " ^ s ^ ".c\n"]
 ;;
 
 let header_one  s = 
@@ -140,7 +140,7 @@ let header_two  s =
   [ "/**\n";
     " * \n";
     " */\n";
-    "class "^s^" {\n"
+    "struct "^s^" {\n"
   ]
 ;;
 
@@ -149,7 +149,7 @@ let footer_two  s = ();;
 let header_three  s = 
   List.iter out
   [  "\n\n";
-     "public static void main(String []args) {\n"]
+     "int main(int argc, char ** argv) {\n  init();\n"]
 ;;
 
 let footer_three  s = 
@@ -160,25 +160,25 @@ let footer_three  s =
 (* on recuoere le  type pour une declaration precise *)
 
 let string_of_const_type ct = match ct with   
-  INTTYPE    -> "MLint "
-| FLOATTYPE  -> "MLdouble "
-| STRINGTYPE -> "MLstring "
-| BOOLTYPE   -> "MLbool "
-| UNITTYPE   -> "MLunit "
+  INTTYPE    -> "MLvalue * "
+| FLOATTYPE  -> "MLvalue * "
+| STRINGTYPE -> "MLvalue * "
+| BOOLTYPE   -> "MLvalue * "
+| UNITTYPE   -> "MLvalue * "
 ;;
  
 let rec string_of_type typ = match typ with 
   CONSTTYPE t -> string_of_const_type t
-| ALPHA    ->  "MLvalue " 
-| PAIRTYPE -> "MLpair "
-| LISTTYPE -> "MLlist "
-| FUNTYPE  -> "MLfun "
-| REFTYPE  -> "MLref "
+| ALPHA    ->  "MLvalue * " 
+| PAIRTYPE -> "MLvalue * "
+| LISTTYPE -> "MLvalue * "
+| FUNTYPE  -> "MLvalue * "
+| REFTYPE  -> "MLValue * "
 ;;
 
 
 let prod_global_var instr = match instr with
-  VAR (v,t) -> out_start ("static "^"MLvalue "^(*(string_of_type t)*)v^";") 1 
+  VAR (v,t) -> out_start ("static "^"MLvalue * "^(*(string_of_type t)*)v^";") 1 
 | FUNCTION (ns,t1,ar,(p,t2), instr) ->
     out_start ("static MLvalue "(*"fun_"^ns^" "*)^ns^"= new MLfun_"^ns^"("^(string_of_int ar)^");") 1
 | _ -> ()
@@ -194,16 +194,16 @@ let get_param_type lv =
 
 
 let prod_const c = match c with 
-  INT i -> out ("new MLint("^(string_of_int i)^")")
-| FLOAT f -> out ("new MLdouble("^(string_of_float f)^")")
-| BOOL b  -> out ("new MLbool("^(if b then "true" else "false")^")")
-| STRING s -> out ("new MLstring("^"\""^s^"\""^")")
-| EMPTYLIST -> out ("MLruntime.MLnil")
-| UNIT ->      out ("MLruntime.MLlrp")
+  INT i -> out ("new_MLint("^(string_of_int i)^")")
+| FLOAT f -> out ("new_MLdouble("^(string_of_float f)^")")
+| BOOL b  -> out ("new_MLbool("^(if b then "1" else "0")^")")
+| STRING s -> out ("new_MLstring("^"\""^s^"\""^")")
+| EMPTYLIST -> out ("MLnil")
+| UNIT ->      out ("MLlrp")
 ;;
 
 let rec prod_local_var (fr,sd,nb) (v,t) = 
-  out_start ("MLvalue "(*(string_of_type t)*)^v^";") nb;;
+  out_start ("MLvalue * "(*(string_of_type t)*)^v^";") nb;;
 
 let rec prod_instr (fr,sd,nb) instr  = match instr with 
   CONST c -> out_before (fr,sd,nb);
