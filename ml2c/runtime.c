@@ -88,7 +88,7 @@ MLvalue * MLequal(MLvalue *x, MLvalue *y){
     m->MLbool=(x->MLdouble)==(y->MLdouble);
   }else if(x->type==MLSTRING){
     m->MLbool=(strcmp(x->MLstring,y->MLstring)==0);
-  }else if(x->type==MLpair){
+  }else if(x->type==MLPAIR){
     MLvalue * v1=MLequal(x->MLpair.MLfst,y->MLpair.MLfst);
     MLvalue * v2=MLequal(x->MLpair.MLsnd,y->MLpair.MLsnd);
     m->MLbool = v1->MLbool && v2->MLbool;
@@ -186,10 +186,10 @@ MLvalue * MLprint(MLvalue * x){
     printf("%f",x->MLdouble);
   }else if(x->type==MLSTRING){
     printf("\"%s\"",x->MLstring);
-  }else if(x->type==MLpair){
+  }else if(x->type==MLPAIR){
     printf("(");
     MLprint(x->MLpair.MLfst);
-    printt(",");
+    printf(",");
     MLprint(x->MLpair.MLsnd);
     printf(")");
   }else if(x->type==MLLIST){
@@ -203,8 +203,26 @@ MLvalue * MLprint(MLvalue * x){
   }else{
     printf("<fun> [");
     for(i=0;i<(x->MLfun.counter);i++){
-      MLprint(x->MLfun.env[i];
+      MLprint(&(x->MLfun.env[i]));
     }
     printf("]");
   }
+  return MLlrp;
+}
+
+void init(){
+  MLtrue=malloc(sizeof(MLvalue));
+  MLtrue->type=MLBOOL;
+  MLtrue->MLbool=1;
+
+  MLfalse=malloc(sizeof(MLvalue));
+  MLfalse->type=MLBOOL;
+  MLfalse->MLbool=0;
+
+  MLlrp=malloc(sizeof(MLvalue));
+  MLlrp->type=MLUNIT;
+
+  MLnil=malloc(sizeof(MLvalue));
+  MLnil->type=MLLIST;
+  MLnil->MLlist=NULL;
 }

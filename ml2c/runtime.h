@@ -46,14 +46,15 @@ MLvalue * new_MLbool(int b);
 MLvalue * new_MLstring(char * s);
 MLvalue * MLpair(MLvalue *x, MLvalue *y);
 MLvalue * MLlist(MLvalue *x, MLvalue *y);
-
+// init
+void init();
 // Booleens
-const MLvalue MLtrue  = {MLBOOL, {1}};
-const MLvalue MLfalse = {MLBOOL, {0}};
+MLvalue * MLtrue;
+MLvalue * MLfalse;
 // Unit
-const MLvalue MLlrp   = {MLUNIT, {0}};
+MLvalue * MLlrp;
 // nil
-const MLvalue MLnil = {MLLIST, {NULL}};
+MLvalue * MLnil;
 // integer arithmetics
 MLvalue * MLaddint(MLvalue * x, MLvalue * y);
 MLvalue * MLsubint(MLvalue * x, MLvalue * y);
