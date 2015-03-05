@@ -112,7 +112,7 @@ let rec translate_expr (gamma,fr,sd,t)  e  = match e with
                  let w = 
                  if (List.mem_assoc v !initial_trans_env) &&
                     (is_fun t)
-                 then (!module_name)^"."^w
+                 then w
                  else w
                  in
                  instr_of_expr (fr,sd) (VAR(w , li_type_of_ml_type t))
@@ -261,7 +261,7 @@ let translate_nofun_decl v e t =
 @(
    if true then 
      let w2 = new_name "bidon" in 
-     [BLOCK([w2,CONSTTYPE UNITTYPE,CONST UNIT],AFFECT(w2,PRIM(("MLruntime.MLprint", ti),[VAR(w,ALPHA)])))]
+     [BLOCK([w2,CONSTTYPE UNITTYPE,CONST UNIT],AFFECT(w2,PRIM(("MLprint", ti),[VAR(w,ALPHA)])))]
    else []
 );;
 

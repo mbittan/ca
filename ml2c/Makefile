@@ -9,7 +9,7 @@ CAMLLINK=$(CAMLC) -o
 CAMLLEX=ocamllex
 CAMLYACC=ocamlyacc
 CAMLDEP=ocamldep
-NAME=java
+NAME=c
 
 CIBLES=intertypeur intereval ml2$(NAME)
 
@@ -33,12 +33,12 @@ intereval: $(IOBJS) alex.ml asyn.ml alex.cmi asyn.cmi $(TOBJS) env_eval.cmo
 ml2$(NAME): $(IOBJS) alex.ml asyn.ml alex.cmi asyn.cmi $(TOBJS) $(COBJS)
 	$(CAMLLINK) $@ $(EOBJS)  $(COBJS) maincomp.ml
 
-java: prodjava.ml
+c: prodc.ml
 	rm prod.ml
-	ln -s prodjava.ml prod.ml
+	ln -s prodc.ml prod.ml
 
 distrib:
-	tar -cvf distrib.tar $(SRCS) alex.mll  asyn.mly asyn.mli Makefile alex.mll alex.mli asyn.mly asyn.mli prodjava.ml maincomp.ml runtime.java Makefile
+	tar -cvf distrib.tar $(SRCS) alex.mll  asyn.mly asyn.mli Makefile alex.mll alex.mli asyn.mly asyn.mli prodc.ml maincomp.ml runtime.c runtime.h Makefile
 
 
 .SUFFIXES:
