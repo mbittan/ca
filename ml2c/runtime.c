@@ -1,6 +1,3 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include "runtime.h"
 
 
@@ -32,6 +29,36 @@ MLvalue * new_MLstring(char *s){
   return m;
 }
 
+MLvalue * new_MLfun(MLvalue * f, int counter, MLvalue * (*invoke)(MLvalue *, MLvalue *)){
+  MLvalue * ff = malloc(sizeof(MLvalue));
+  int i;
+  ff->type=MLFUN;
+  if(f){
+    ff->MLfun.nbparams=f->MLfun.nbparams;
+    ff->MLfun.counter=counter;
+    ff->MLfun.env=malloc(counter*sizeof(MLvalue *));
+    for(i=0;i<counter;i++){
+      ff->MLfun.env[i]=NULL;
+    }
+    if(f->MLfun.env){
+      memcpy(ff->MLfun.env,f->MLfun.env,f->MLfun.counter*(sizeof(MLvalue)));
+    }
+    ff->MLfun.invoke=f->MLfun.invoke;
+  }else{
+    ff->MLfun.nbparams=counter;
+    ff->MLfun.counter=0;
+    ff->MLfun.env=NULL;
+    ff->MLfun.invoke=invoke;
+  }
+  return ff;
+}
+
+void MLaddenv(MLvalue * f, MLvalue * p){
+  int i;
+  for(i=0;f->MLfun.env[i]!=NULL;i++);
+  f->MLfun.env[i]=p;
+}
+
 MLvalue * MLpair(MLvalue *x, MLvalue *y){
   MLvalue * m = malloc(sizeof(MLvalue));
   m->type=MLPAIR;
@@ -40,7 +67,7 @@ MLvalue * MLpair(MLvalue *x, MLvalue *y){
   return m;
 }
 
-MLvalue * MLlist(MLvalue *x, MLvalue*y){
+MLvalue * MLlist(MLvalue *x, MLvalue *y){
   MLvalue * m = malloc(sizeof(MLvalue));
   m->type=MLLIST;
   m->MLlist=malloc(sizeof(struct _mllist_));
@@ -158,23 +185,23 @@ MLvalue * MLconcat(MLvalue * x, MLvalue * y){
   return m;
 }
 
-MLvalue * MLfst_real(MLvalue * p){
+MLvalue * MLfst(MLvalue * p){
   return p->MLpair.MLfst;
 }
 
-MLvalue * MLsnd_real(MLvalue * p){
+MLvalue * MLsnd(MLvalue * p){
   return p->MLpair.MLsnd;
 }
 
-MLvalue * MLhd_real(MLvalue * l){
+MLvalue * MLhd(MLvalue * l){
   return l->MLlist->MLcar;
 }
 
-MLvalue * MLtl_real(MLvalue * l){
+MLvalue * MLtl(MLvalue * l){
   return l->MLlist->MLcdr;
 }
 
-MLvalue * MLprint(MLvalue * x){
+MLvalue * MLprint_rec(MLvalue * x){
   int i;
   if(x->type==MLUNIT){
     printf("()");
@@ -188,28 +215,32 @@ MLvalue * MLprint(MLvalue * x){
     printf("\"%s\"",x->MLstring);
   }else if(x->type==MLPAIR){
     printf("(");
-    MLprint(x->MLpair.MLfst);
+    MLprint_rec(x->MLpair.MLfst);
     printf(",");
-    MLprint(x->MLpair.MLsnd);
+    MLprint_rec(x->MLpair.MLsnd);
     printf(")");
   }else if(x->type==MLLIST){
     if(x->MLlist){
-      MLprint(x->MLlist->MLcar);
+      MLprint_rec(x->MLlist->MLcar);
       printf("::");
-      MLprint(x->MLlist->MLcdr);
+      MLprint_rec(x->MLlist->MLcdr);
     }else{
       printf("[]");
     }
   }else{
     printf("<fun> [");
     for(i=0;i<(x->MLfun.counter);i++){
-      MLprint(&(x->MLfun.env[i]));
+      MLprint_rec(x->MLfun.env[i]);
     }
     printf("]");
   }
   return MLlrp;
 }
-
+MLvalue * MLprint(MLvalue * x){
+  MLprint_rec(x);
+  printf("\n");
+  return MLlrp;
+}
 void init(){
   MLtrue=malloc(sizeof(MLvalue));
   MLtrue->type=MLBOOL;
@@ -225,4 +256,33 @@ void init(){
   MLnil=malloc(sizeof(MLvalue));
   MLnil->type=MLLIST;
   MLnil->MLlist=NULL;
+
+  MLfst_real=malloc(sizeof(MLvalue));
+  MLfst_real->type=MLFUN;
+  MLfst_real->MLfun.invoke=invoke_MLfst; 
+
+  MLsnd_real=malloc(sizeof(MLvalue));
+  MLsnd_real->type=MLFUN;
+  MLsnd_real->MLfun.invoke=invoke_MLsnd;
+
+  MLhd_real=malloc(sizeof(MLvalue));
+  MLhd_real->type=MLFUN;
+  MLhd_real->MLfun.invoke=invoke_MLhd;
+
+  MLtl_real=malloc(sizeof(MLvalue));
+  MLtl_real->type=MLFUN;
+  MLtl_real->MLfun.invoke=invoke_MLtl;
+}
+
+MLvalue * invoke_MLfst(MLvalue * f, MLvalue * p){
+  return MLfst(p);
+}
+MLvalue * invoke_MLsnd(MLvalue * f, MLvalue * p){
+  return MLsnd(p);
+}
+MLvalue * invoke_MLhd(MLvalue * f, MLvalue * p){
+  return MLhd(p);
+}
+MLvalue * invoke_MLtl(MLvalue * f, MLvalue * p){
+  return MLtl(p);
 }
