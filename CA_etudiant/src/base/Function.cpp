@@ -1,4 +1,5 @@
 #include <Function.h>
+#include <Directive.h>
 
 Function::Function(){
   _head = NULL;
@@ -23,7 +24,7 @@ Line* Function::get_head(){
 }
 
 Basic_block* Function::get_firstBB(){
-   return _myBB.front();
+  return _myBB.front();
 }
 
 Line* Function::get_end(){
@@ -45,7 +46,7 @@ void Function::display(){
     }
     else element = element->get_next();
 
-    }
+  }
   cout<<"End Function\n\n"<<endl;
 	
 }
@@ -150,16 +151,16 @@ Label* Function::get_label(int index){
 
 Basic_block *Function::find_label_BB(OPLabel* label){
   //Basic_block *BB = new Basic_block();
-   int size=(int)_myBB.size();
-   string str;
-   for(int i=0; i<size; i++){		
-      if(get_BB(i)->is_labeled()){
+  int size=(int)_myBB.size();
+  string str;
+  for(int i=0; i<size; i++){		
+    if(get_BB(i)->is_labeled()){
 	 
-	 str=get_BB(i)->get_head()->get_content();
-	 if(!str.compare(0, (str.size()-1),label->get_op())){
-	    return get_BB(i);
-	 }
+      str=get_BB(i)->get_head()->get_content();
+      if(!str.compare(0, (str.size()-1),label->get_op())){
+	return get_BB(i);
       }
+    }
   }
   return NULL;
 }
@@ -168,12 +169,12 @@ Basic_block *Function::find_label_BB(OPLabel* label){
 /* ajoute nouveau BB à la liste de BB de la fonction en le creant */
 
 void Function::add_BB(Line *debut, Line* fin, Line *br, int index){
-   Basic_block *b=new Basic_block();
-   b->set_head(debut);
-   b->set_end(fin);
-   b->set_index(index);
-   b->set_branch(br);
-   _myBB.push_back(b);
+  Basic_block *b=new Basic_block();
+  b->set_head(debut);
+  b->set_end(fin);
+  b->set_index(index);
+  b->set_branch(br);
+  _myBB.push_back(b);
 }
 
 
@@ -181,34 +182,61 @@ void Function::add_BB(Line *debut, Line* fin, Line *br, int index){
 
 
 void Function::comput_basic_block(){
-  Line *debut, *current, *prev;
-   current=_head;
-   debut=_head;
-   prev = NULL;
-   int ind=0;
-   Line *l=NULL;
-   Instruction *i=NULL;
-   Line * b;
+  Line *debut=_head, *current=_head, *prev=NULL;
+  int ind=0;
+  Line *l=NULL;
+  Instruction *i=NULL;
+  Directive* d=NULL;
 
-   cout<< "comput BB" <<endl;
-   cout<<"head :"<<_head->get_content()<<endl;
-   cout<<"tail :"<<_end->get_content()<<endl;
+  cout<< "comput BB" <<endl;
+  cout<<"head :"<<_head->get_content()<<endl;
+  cout<<"tail :"<<_end->get_content()<<endl;
 
-   //ne pas enlever la ligne ci-dessous 
-   if (BB_computed) return;
+  //ne pas enlever la ligne ci-dessous 
+  if (BB_computed) return;
 
   
-   /**** A COMPLETER ****/
+  /**** A COMPLETER ****/
+  prev = current;
+  current = current->get_next();
+  while(current) {
+    if(current->isLabel()){
+      if(debut != current){
+	if(!prev->isDirective()){
+	  add_BB(debut, prev, NULL, ind);
+	  ind++;
+	}
+      }
+      debut = current->get_next();
+    }
+    else if(current->isInst()) {
+      i = getInst(current);
+      if(i->is_branch()) {
+	prev = current;
+	current = current->get_next();
+	add_BB(debut, current, prev, ind);
+	ind++;
+	debut = current->get_next();
+      }
+    }
+    else if(current->isDirective()) {
+      d = getDirective(current);
+      if(d->_dir == ".end")
+	break;
+    }
+    prev = current;
+    current = current->get_next();
+  }
 
 
-   cout<<"end comput Basic Block"<<endl;
-   BB_computed = true;
-   return;
+  cout<<"end comput Basic Block"<<endl;
+  BB_computed = true;
+  return;
 }
 
 
 int Function::nbr_BB(){
-   return _myBB.size();
+  return _myBB.size();
 }
 
 Basic_block *Function::get_BB(int index){
@@ -226,11 +254,11 @@ Basic_block *Function::get_BB(int index){
 }
 
 list<Basic_block*>::iterator Function::bb_list_begin(){
-   return _myBB.begin();
+  return _myBB.begin();
 }
 
 list<Basic_block*>::iterator Function::bb_list_end(){
-   return _myBB.end();
+  return _myBB.end();
 }
 
 /* comput_pred_succ calcule les successeurs et prédécesseur des BB, pour cela il faut commencer par les successeurs */
@@ -244,31 +272,31 @@ list<Basic_block*>::iterator Function::bb_list_end(){
 
 void Function::comput_succ_pred_BB(){
   
-   list<Basic_block*>::iterator it, it2;
-   Basic_block *current;
-   Instruction *instr;
-   Basic_block *succ=NULL;
-   // IMPORTANT ne pas enlever la ligne ci-dessous 
-   if (BB_pred_succ) return;
-   int size= (int) _myBB.size();
-   it=_myBB.begin();
+  list<Basic_block*>::iterator it, it2;
+  Basic_block *current;
+  Instruction *instr;
+  Basic_block *succ=NULL;
+  // IMPORTANT ne pas enlever la ligne ci-dessous 
+  if (BB_pred_succ) return;
+  int size= (int) _myBB.size();
+  it=_myBB.begin();
    
-   for (int i=0; i<size; i++){
-     current=*it;
+  for (int i=0; i<size; i++){
+    current=*it;
     
-     /** A COMPLETER **/
-     /*** boucle qui permet d'itérer sur les blocs de la fonction ***/
+    /** A COMPLETER **/
+    /*** boucle qui permet d'itérer sur les blocs de la fonction ***/
 
-     it++;
-   }
+    it++;
+  }
    
-   // ne pas enlever la ligne ci-dessous
-   BB_pred_succ = true;
-   return;
+  // ne pas enlever la ligne ci-dessous
+  BB_pred_succ = true;
+  return;
 }
 
 void Function::compute_dom(){
- list<Basic_block*>::iterator it, it2;
+  list<Basic_block*>::iterator it, it2;
   list<Basic_block*> workinglist;
   Basic_block *current, *bb, *pred;
   Instruction *instr;
@@ -303,8 +331,8 @@ void Function::compute_live_var(){
 
 void Function::test(){
   int size=(int)_myBB.size();
-   for(int i=0;i<size; i++){
+  for(int i=0;i<size; i++){
     get_BB(i)->test();
   }
-   return;
+  return;
 }
