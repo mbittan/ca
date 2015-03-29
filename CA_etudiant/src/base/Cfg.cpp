@@ -1,13 +1,15 @@
 #include <Cfg.h>
 
 Cfg::Cfg(Basic_block * BB, int size){
-  //remplir !
+  _head = BB;
+  _length = size;
+  _read = new int[size];
 }
 
 Cfg::~Cfg(){}
 
 Basic_block *Cfg::get_head(){
-	return _head;
+  return _head;
 }
 
 
