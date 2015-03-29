@@ -276,6 +276,7 @@ void Function::comput_succ_pred_BB(){
   Basic_block *current;
   Instruction *instr;
   Basic_block *succ=NULL;
+  Line        *l=NULL;
   // IMPORTANT ne pas enlever la ligne ci-dessous 
   if (BB_pred_succ) return;
   int size= (int) _myBB.size();
@@ -286,10 +287,27 @@ void Function::comput_succ_pred_BB(){
     
     /** A COMPLETER **/
     /*** boucle qui permet d'itérer sur les blocs de la fonction ***/
+    if((l = current->get_branch()) != NULL){
+      instr = getInst(l);
+      if(instr->is_cond_branch()){
+	succ = find_label_BB(instr->get_op_label());
+	current->set_link_succ_pred(succ);
+	it2 = it;
+	it2++;
+	current->set_link_succ_pred(*it2);
+      }
+      else if(instr->is_call() || !instr->is_indirect_branch()){
+	current->set_link_succ_pred(find_label_BB(instr->get_op_label()));
+      }
+    } else{
+      it2 = it;
+      it2++;;
+      current->set_link_succ_pred(*it2);
+    }
 
     it++;
   }
-   
+
   // ne pas enlever la ligne ci-dessous
   BB_pred_succ = true;
   return;
