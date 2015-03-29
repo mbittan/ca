@@ -207,7 +207,7 @@ void Function::comput_basic_block(){
 	  ind++;
 	}
       }
-      debut = current->get_next();
+      debut = current;
     }
     else if(current->isInst()) {
       i = getInst(current);
