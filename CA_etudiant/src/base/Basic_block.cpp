@@ -339,12 +339,38 @@ void add_dep_link(Instruction *pred, Instruction* succ, t_Dep type){
 /* utiliser la fonction add_dep_link ci-dessus qui ajoute à la liste des dépendances pred et succ une dependance entre 2 instructions */
 
 void Basic_block::comput_pred_succ_dep(){
-   
+  Instruction *i1=NULL;
+  Instruction *i2=NULL;
+  t_Dep dependance;
+  bool raw=false, war=false, waw=false, mem=false;
+
   // IMPORTANT : laisser les 2 instructions ci-dessous 
    link_instructions();
    if (dep_done) return;
 
-   
+   for(int i=this->size()-1; i>=0; i--){
+     i1 = get_instruction_at_index(i);
+     raw = false;
+     waw = false;
+     for(int j=i-1; j>=0; j--){
+       i2 = get_instruction_at_index(j);
+       dependance = i1->is_dependant(i2);
+       if(dependance == RAW && !raw){
+	 raw = true;
+	 add_dep_link(i2, i1, RAW);
+       }
+       else if(dependance == WAR){
+	 add_dep_link(i2, i1, WAR);
+       }
+       else if(dependance == WAW && !waw){
+	 waw = true;
+	 add_dep_link(i2, i1, WAW);
+       }
+       else if(dependance == MEMDEP){
+	 add_dep_link(i2, i1, MEMDEP);
+       }
+     }
+   }
 
    // NE PAS ENLEVER : cette fonction ne doit être appelée qu'une seule fois
    dep_done = true;
