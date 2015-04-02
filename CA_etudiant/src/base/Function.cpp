@@ -319,18 +319,84 @@ void Function::compute_dom(){
   Basic_block *current, *bb, *pred;
   Instruction *instr;
   bool change = true;
+  bool T[NB_MAX_BB];
+  bool D[NB_MAX_BB];
+  int size= (int) _myBB.size();
   
   // NE pas enlever les 2 ligne ci-dessous
   if (dom_computed) return;
   comput_succ_pred_BB();
  
-
   // A COMPLETER 
+  it=_myBB.begin();
+
+  // recherche des blocs sans predecesseurs
+  for (int i=0; i<size; i++){
+    current=*it;
+    if(current->get_nb_pred() == 0){
+      for(int j=0; j<size; j++)
+	current->Domin[j] = false;
+      workinglist.push_front(current);
+    }
+    it++;
+  }
+
+  //calcul des dominants
+  while(!workinglist.empty()){
+    change = false;
+    bb = workinglist.front();
+    workinglist.pop_front();
+    if(bb->get_nb_pred() == 0)
+      for(int m=0; m<size; m++)       // T := N
+	T[m] = false;
+    else
+      for(int m=0; m<size; m++)       // T := N
+	T[m] = true;
+    for(int k=0; k<bb->get_nb_pred(); k++){  // foreach... T +:= Domin(pred)
+      pred = bb->get_predecessor(k);
+      for(int l=0; l<size; l++){
+	if(!T[l] || !pred->Domin[l]){
+	  T[l] = false;
+	}
+      }
+    }
+    for(int k=0; k<size; k++)
+	D[k] = T[k];
+    D[bb->get_index()] = true;
+    for(int j=0; j<size; j++){
+      if(D[j] != bb->Domin[j]){
+	change = true;
+	break;
+      }
+    }
+
+    if(change){
+      for(int k=0; k<size; k++)
+	bb->Domin[k] = D[k];
+      if(bb->get_nb_succ() >= 1)
+	workinglist.push_back(bb->get_successor1());
+      if(bb->get_nb_succ() == 2)
+	workinglist.push_back(bb->get_successor2());
+    }
+  }
+
+  it2 = _myBB.begin();
+  cout<<endl;
+  for (int i=0; i<size; i++){
+    cout<<"Domin("<<i<<") = {";
+    current=*it2;
+    for(int j=0; j<size; j++)
+      if(current->Domin[j])
+	cout<<j<<",";
+    cout<<"}"<<endl;
+    it2++;
+  }
 
   // ne pas enlever 
   dom_computed = true;
   return;
 }
+
 
 void Function::compute_live_var(){
   
