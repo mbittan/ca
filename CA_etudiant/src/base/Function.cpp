@@ -297,7 +297,8 @@ void Function::comput_succ_pred_BB(){
 	current->set_link_succ_pred(*it2);
       }
       else if(instr->is_call() || !instr->is_indirect_branch()){
-	current->set_link_succ_pred(find_label_BB(instr->get_op_label()));
+	if(find_label_BB(instr->get_op_label()))
+	  current->set_link_succ_pred(find_label_BB(instr->get_op_label()));
       }
     } else{
       it2 = it;
