@@ -410,9 +410,31 @@ void Basic_block::reset_pred_succ_dep(){
 /* calcul le nb de cycles pour executer le BB, on suppose qu'une instruction peut sortir du pipeline à chaque cycle, il faut trouver les cycles de gel induit par les dépendances */
 
 int Basic_block::nb_cycles(){
-  
- /*** A COMPLETER ***/
-  return 0;
+  Instruction *i1;
+  int size = this->size();
+  dep* d;
+  int max_delay, delay;
+  int cycles = 0;
+
+  for(int i=size-1; i>=0; i--){   // for each instruction
+    //cout<<"i="<<i<<endl;
+    i1 = this->get_instruction_at_index(i);
+    //cout<<i1->to_string()<<endl;
+    max_delay = 0;
+    for(int j=i1->get_nb_pred()-1; j>=0; j--){  // for each dependency
+      //cout<<"j="<<j<<endl;
+      d = i1->get_pred_dep(j);
+      if(d->type == RAW){
+	delay = delai(i1->get_type(), d->inst->get_type()) - (i - d->inst->get_index());
+	//cout<<"i"<<i<<"--"<<d->type<<": "<<delay<<endl;
+	max_delay = std::max(delay, max_delay);
+      }
+    }
+    //cout<<"i"<<i<<": delay="<<max_delay<<endl;
+    cycles += 1 + max_delay;
+  }
+
+  return cycles;
 }
 
 /* 
