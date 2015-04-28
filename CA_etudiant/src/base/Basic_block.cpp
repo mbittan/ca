@@ -343,31 +343,47 @@ void Basic_block::comput_pred_succ_dep(){
   Instruction *i2=NULL;
   t_Dep dependance;
   bool raw=false, war=false, waw=false, mem=false;
+  int size = this->get_nb_inst();
 
   // IMPORTANT : laisser les 2 instructions ci-dessous 
    link_instructions();
    if (dep_done) return;
 
-   for(int i=this->size()-1; i>=0; i--){
-     i1 = get_instruction_at_index(i);
+   //cout<<endl<<"Dependencies:"<<endl;
+   for(int i=size-1; i>=0; i--){
+     i1 = this->get_instruction_at_index(i);
      raw = false;
      waw = false;
      for(int j=i-1; j>=0; j--){
-       i2 = get_instruction_at_index(j);
-       dependance = i1->is_dependant(i2);
+       i2 = this->get_instruction_at_index(j);
+       dependance = i2->is_dependant(i1);
        if(dependance == RAW && !raw){
 	 raw = true;
 	 add_dep_link(i2, i1, RAW);
+	 //cout<<i1->get_index()<<" ---RAW---> "<<i2->get_index()<<endl;
        }
        else if(dependance == WAR){
 	 add_dep_link(i2, i1, WAR);
+	 //cout<<i1->get_index()<<" ---WAR---> "<<i2->get_index()<<endl;
        }
        else if(dependance == WAW && !waw){
 	 waw = true;
 	 add_dep_link(i2, i1, WAW);
+	 //cout<<i1->get_index()<<" ---WAW---> "<<i2->get_index()<<endl;
        }
        else if(dependance == MEMDEP){
 	 add_dep_link(i2, i1, MEMDEP);
+	 //cout<<i1->get_index()<<" ---MEM---> "<<i2->get_index()<<endl;
+       }
+     }
+   }
+   i1 = this->get_instruction_at_index(size-2);
+   if(i1->is_branch()){
+     for(int i=size-3; i>=0; i--){
+       i2 = this->get_instruction_at_index(i);
+       if(i2->get_nb_succ() == 0){
+	 add_dep_link(i1, i2, CONTROL);
+	 //cout<<i1->get_index()<<" ---CTRL---> "<<i2->get_index()<<endl;
        }
      }
    }
