@@ -24,7 +24,7 @@ int main(int argc, char ** argv){
   cout << "dans le fichier " << argv[1]  << " nb function : " << p2.nbr_func() << endl;
   for (int i = 0; i < p2.nbr_func() ; i++){
     cout << " ----------------- FONCTION "<< i<< " --------------------" << endl;
-     p2.get_function(i)->display();
+    p2.get_function(i)->display();
   }
     
   return 0;

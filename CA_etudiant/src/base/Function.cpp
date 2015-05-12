@@ -309,6 +309,23 @@ void Function::comput_succ_pred_BB(){
     it++;
   }
 
+  it=_myBB.begin();
+   
+  for (int i=0; i<size; i++){
+    current=*it;
+    
+    cout<<"BB"<<current->get_index()<<": succ={";
+    succ = current->get_successor1();
+    if(succ)
+      cout<<succ->get_index();
+    succ = current->get_successor2();
+    if(succ)
+      cout<<","<<succ->get_index();
+    cout<<"}"<<endl;
+    
+    it++;
+  }
+
   // ne pas enlever la ligne ci-dessous
   BB_pred_succ = true;
   return;
@@ -400,9 +417,80 @@ void Function::compute_dom(){
 
 
 void Function::compute_live_var(){
+  list<Basic_block*>::iterator it, it2;
+  list<Basic_block*> workinglist;
+  Basic_block *bb, *current;
+  int size= (int) _myBB.size();
+  bool change;
   
-  
-  /*** A COMPLETER */
+  it=_myBB.begin();
+
+  // recherche blocs sans successeurs
+  for (int i=0; i<size; i++){
+    current=*it;
+    if(current->get_nb_succ() == 0){
+      workinglist.push_front(current);
+    }
+    it++;
+  }
+
+  // compute LiveIn and LiveOut
+  while(!workinglist.empty()){
+    change = false;
+    current = workinglist.front();
+    workinglist.pop_front();
+    //cout<<"block="<<current->get_index()<<endl;
+    // LiveOut
+    if((bb = current->get_successor1()) != NULL){
+      for(int j=0; j<NB_REG; j++){
+	if(bb->LiveIn[j] && !current->LiveOut[j]){
+	  current->LiveOut[j] = true;
+	  change = true;
+	}
+      }
+    }
+    if((bb = current->get_successor2()) != NULL){
+      for(int j=0; j<NB_REG; j++){
+	if(bb->LiveIn[j] && !current->LiveOut[j]){
+	  current->LiveOut[j] = true;
+	  change = true;
+	}
+      }
+    }
+
+    // LiveIn
+    for(int j=0; j<NB_REG; j++){
+      if((!current->LiveIn[j]) &&
+	 (current->Use[j] || (current->LiveOut[j] && !current->Def[j]))){
+	current->LiveIn[j] = true;
+	change = true;
+      }
+    }
+
+    // if change, update predecessors
+    if(change){
+      for(int k=0; k<current->get_nb_pred(); k++){
+	workinglist.push_back(current->get_predecessor(k));
+      }
+    }
+  }
+
+  it2=_myBB.begin();
+  for(int i=0; i<size; i++){
+    current=*it2;
+    cout<<"BB"<<current->get_index()<<":"<<endl;
+    cout<<"LiveOut = {";
+    for(int j=0; j<NB_REG; j++)
+      if(current->LiveOut[j])
+	cout<<j<<",";
+    cout<<"}"<<endl;
+    cout<<"LiveIn = {";
+    for(int j=0; j<NB_REG; j++)
+      if(current->LiveIn[j])
+	cout<<j<<",";
+    cout<<"}"<<endl;
+    it2++;
+  }
 
   return;
 }
